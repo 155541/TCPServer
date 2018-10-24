@@ -58,6 +58,7 @@ public class Main {
 							headerResponse.setTimestamp(Toolkit.timestamp());
 							headerResponse.setCode(Code.RES_ERROR_SQL);
 							headerResponse.setToken(null);
+							packetResponse.setHeader(headerResponse);
 							packetResponse.setBody(exc.getMessage());
 							return packetResponse;
 						}
@@ -82,16 +83,54 @@ public class Main {
 							headerResponse.setTimestamp(Toolkit.timestamp());
 							headerResponse.setDeviceId(Params.SERVER_ID);
 							
+							packetResponse.setHeader(headerResponse);
 							packetResponse.setBody(Toolkit.getConnectedDevices());
+							return packetResponse;
 						}
 						catch(SQLException exc)
 						{
-							
+							headerResponse.setDeviceId(Params.SERVER_ID);
+							headerResponse.setTimestamp(Toolkit.timestamp());
+							headerResponse.setCode(Code.RES_ERROR_SQL);
+							headerResponse.setToken(null);
+							packetResponse.setHeader(headerResponse);
+							packetResponse.setBody(exc.getMessage());
+							return packetResponse;
 						}
 						
-						break;
 					case REQ_CLOSE_SESSION:
-						break;
+						
+						try
+						{
+							Device dev = (Device) body;
+							Token reqToken = header.getToken();
+							if (db.verifyToken(reqToken))
+							{
+								Toolkit.removeConnectedDevice(dev);
+								headerResponse.setCode(Code.RES_OK);
+								headerResponse.setToken(reqToken);
+								headerResponse.setTimestamp(Toolkit.timestamp());
+								headerResponse.setDeviceId(Params.SERVER_ID);
+								packetResponse.setBody(null);
+							}
+							else
+							{
+								// TODO: WHAT? EH?
+							}
+							packetResponse.setHeader(headerResponse);
+							return packetResponse;
+						}
+						catch(SQLException exc)
+						{
+							headerResponse.setDeviceId(Params.SERVER_ID);
+							headerResponse.setTimestamp(Toolkit.timestamp());
+							headerResponse.setCode(Code.RES_ERROR_SQL);
+							headerResponse.setToken(null);
+							packetResponse.setHeader(headerResponse);
+							packetResponse.setBody(exc.getMessage());
+							return packetResponse;
+						}
+						
 					case REQ_TRANSMISSION:
 						break;
 					default:
