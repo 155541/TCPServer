@@ -5,11 +5,11 @@ import java.net.InetAddress;
 import java.sql.SQLException;
 
 import com.revolhope.deepdev.tcplibrary.constants.Params;
-import com.revolhope.deepdev.tcplibrary.helpers.Database;
 import com.revolhope.deepdev.tcplibrary.helpers.TcpServer;
 import com.revolhope.deepdev.tcplibrary.model.Device;
 import com.revolhope.deepdev.tcplibrary.model.Header;
 import com.revolhope.deepdev.tcplibrary.model.Packet;
+import com.revolhope.deepdev.tcpserver.helpers.Database;
 
 public class Main {
 
