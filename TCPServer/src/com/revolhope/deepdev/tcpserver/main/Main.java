@@ -145,7 +145,14 @@ public class Main {
 				@Override
 				public void response(Packet obj, InetAddress addr, int port)
 				{
-					
+					try 
+					{
+						TcpServer.send(obj, addr, port);
+					} 
+					catch (IOException e) 
+					{
+						e.printStackTrace();
+					}
 				}
 			});				
 		} 
