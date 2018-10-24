@@ -11,7 +11,7 @@ import com.revolhope.deepdev.tcplibrary.model.Device;
 import com.revolhope.deepdev.tcplibrary.model.Header;
 import com.revolhope.deepdev.tcplibrary.model.Packet;
 import com.revolhope.deepdev.tcplibrary.model.Token;
-import com.revolhope.deepdev.tcplibrary.model.Type;
+import com.revolhope.deepdev.tcplibrary.model.Code;
 import com.revolhope.deepdev.tcpserver.helpers.Database;
 import com.revolhope.deepdev.tcpserver.helpers.Toolkit;
 
@@ -33,7 +33,7 @@ public class Main {
 					Packet packetResponse = new Packet();
 					Header headerResponse = new Header();
 					
-					switch(header.getType())
+					switch(header.getCode())
 					{
 					case REQ_INIT:
 						try
@@ -43,28 +43,20 @@ public class Main {
 							
 							headerResponse.setDeviceId(Params.SERVER_ID);
 							headerResponse.setTimestamp(Toolkit.timestamp());
+							headerResponse.setCode(Code.RES_OK);
+							headerResponse.setToken(new Token(dev.getId()));
+							packetResponse.setBody(dev);
 							
-							if (dev != null)
-							{
-								headerResponse.setType(Type.RES_OK);
-								headerResponse.setToken(new Token(dev.getId()));
-								packetResponse.setBody(dev);
-								
-								db.insertToken(headerResponse.getToken());
-							}
-							else
-							{
-								headerResponse.setType(Type.RES_ERROR_SQL);
-								headerResponse.setToken(null);
-								packetResponse.setBody("ERROR_SQL: Device returned from database is null..");
-							}
+							db.insertToken(headerResponse.getToken());
 							
 							packetResponse.setHeader(headerResponse);
 							return packetResponse;
 						}
 						catch(SQLException exc)
 						{
-							headerResponse.setType(Type.RES_ERROR_SQL);
+							headerResponse.setDeviceId(Params.SERVER_ID);
+							headerResponse.setTimestamp(Toolkit.timestamp());
+							headerResponse.setCode(Code.RES_ERROR_SQL);
 							headerResponse.setToken(null);
 							packetResponse.setBody(exc.getMessage());
 							return packetResponse;
@@ -76,22 +68,21 @@ public class Main {
 						{
 							Device dev = db.selectDeviceByMac((String) body);
 							
-							if (dev != null)
+							Token devToken = db.selectToken(dev.getId());
+							if (!devToken.isValid())
 							{
-								Token devToken = db.selectToken(dev.getId());
-								if (!devToken.isValid())
-								{
-									devToken.refresh();
-									db.updateToken(devToken);
-								}
-								
-								Toolkit.addConnectedDevice(dev);
-								
-								headerResponse.setType(Type.RES_OK);
-								headerResponse.setToken(devToken);
-								headerResponse.setTimestamp(Toolkit.timestamp());
-								headerResponse.setDeviceId(Params.SERVER_ID);
+								devToken.refresh();
+								db.updateToken(devToken);
 							}
+							
+							Toolkit.addConnectedDevice(dev);
+							
+							headerResponse.setCode(Code.RES_OK);
+							headerResponse.setToken(devToken);
+							headerResponse.setTimestamp(Toolkit.timestamp());
+							headerResponse.setDeviceId(Params.SERVER_ID);
+							
+							packetResponse.setBody(Toolkit.getConnectedDevices());
 						}
 						catch(SQLException exc)
 						{
