@@ -31,7 +31,7 @@ public class Main {
 							Database db = Database.GetInstance();
 							Device dev = db.insertDevice((Device) obj.getBody());
 							
-							
+							 
 						}
 						catch(SQLException exc)
 						{
