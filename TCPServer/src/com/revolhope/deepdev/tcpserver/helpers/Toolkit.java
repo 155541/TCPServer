@@ -2,18 +2,19 @@ package com.revolhope.deepdev.tcpserver.helpers;
 
 
 import java.util.ArrayList;
+import java.util.Calendar;
 
 import com.revolhope.deepdev.tcplibrary.model.Device;
 
 public class Toolkit 
 {
-	ArrayList<Device> connectedDevices = new ArrayList<>();
+	private static ArrayList<Device> connectedDevices = new ArrayList<>();
 	
 	/***
 	 * 
 	 * @param dev
 	 */
-	public void addConnectedDevice(Device dev)
+	public static void addConnectedDevice(Device dev)
 	{
 		removeConnectedDevice(dev);
 		connectedDevices.add(0, dev);
@@ -23,7 +24,7 @@ public class Toolkit
 	 * 
 	 * @param dev
 	 */
-	public void removeConnectedDevice(Device dev)
+	public static void removeConnectedDevice(Device dev)
 	{
 		for (Device d : connectedDevices)
 		{
@@ -38,8 +39,13 @@ public class Toolkit
 	 * 
 	 * @return
 	 */
-	public ArrayList<Device> getConnectedDevices()
+	public static ArrayList<Device> getConnectedDevices()
 	{
-		return this.connectedDevices;
+		return Toolkit.connectedDevices;
+	}
+	
+	public static long timestamp()
+	{
+		return Calendar.getInstance().getTimeInMillis();
 	}
 }
