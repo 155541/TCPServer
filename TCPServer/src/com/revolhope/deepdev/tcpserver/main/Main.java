@@ -1,7 +1,7 @@
 package com.revolhope.deepdev.tcpserver.main;
 
 import java.io.IOException;
-import java.io.OutputStream;
+import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.sql.SQLException;
 
@@ -18,143 +18,147 @@ import com.revolhope.deepdev.tcpserver.helpers.Toolkit;
 public class Main {
 
 	public static void main(String[] args) {
-				
+		
 		try 
-		{	
-			TcpServer.listen(Params.PORT, new TcpServer.OnReceive() {
-				
-				@Override
-				public Packet process(Packet obj)
-				{
-					Database db = Database.GetInstance();
-					Header header = obj.getHeader();
-					Object body = obj.getBody();
+		{
+			TcpServer.bind(Params.PORT);
+			while(true)
+			{
+				TcpServer.listen(new TcpServer.OnReceive() {
 					
-					Packet packetResponse = new Packet();
-					Header headerResponse = new Header();
-					
-					switch(header.getCode())
+					@Override
+					public Packet process(Packet obj)
 					{
-					case REQ_INIT:
-						try
-						{
-							Device dev = (Device) body;
-							dev = db.insertDevice(dev);
-							
-							headerResponse.setDeviceId(Params.SERVER_ID);
-							headerResponse.setTimestamp(Toolkit.timestamp());
-							headerResponse.setCode(Code.RES_OK);
-							headerResponse.setToken(new Token(dev.getId()));
-							packetResponse.setBody(dev);
-							
-							db.insertToken(headerResponse.getToken());
-							
-							packetResponse.setHeader(headerResponse);
-							return packetResponse;
-						}
-						catch(SQLException exc)
-						{
-							headerResponse.setDeviceId(Params.SERVER_ID);
-							headerResponse.setTimestamp(Toolkit.timestamp());
-							headerResponse.setCode(Code.RES_ERROR_SQL);
-							headerResponse.setToken(null);
-							packetResponse.setHeader(headerResponse);
-							packetResponse.setBody(exc.getMessage());
-							return packetResponse;
-						}
+						Database db = Database.GetInstance();
+						Header header = obj.getHeader();
+						Object body = obj.getBody();
 						
-					case REQ_OPEN_SESSION:
+						Packet packetResponse = new Packet();
+						Header headerResponse = new Header();
 						
-						try
+						switch(header.getCode())
 						{
-							Device dev = db.selectDeviceByMac((String) body);
-							
-							Token devToken = db.selectToken(dev.getId());
-							if (!devToken.isValid())
+						case REQ_INIT:
+							try
 							{
-								devToken.refresh();
-								db.updateToken(devToken);
+								Device dev = (Device) body;
+								dev = db.insertDevice(dev);
+								
+								headerResponse.setDeviceId(Params.SERVER_ID);
+								headerResponse.setTimestamp(Toolkit.timestamp());
+								headerResponse.setCode(Code.RES_OK);
+								headerResponse.setToken(new Token(dev.getId()));
+								packetResponse.setBody(dev);
+								
+								db.insertToken(headerResponse.getToken());
+								
+								packetResponse.setHeader(headerResponse);
+								return packetResponse;
+							}
+							catch(SQLException exc)
+							{
+								headerResponse.setDeviceId(Params.SERVER_ID);
+								headerResponse.setTimestamp(Toolkit.timestamp());
+								headerResponse.setCode(Code.RES_ERROR_SQL);
+								headerResponse.setToken(null);
+								packetResponse.setHeader(headerResponse);
+								packetResponse.setBody(exc.getMessage());
+								return packetResponse;
 							}
 							
-							Toolkit.addConnectedDevice(dev);
+						case REQ_OPEN_SESSION:
 							
-							headerResponse.setCode(Code.RES_OK);
-							headerResponse.setToken(devToken);
-							headerResponse.setTimestamp(Toolkit.timestamp());
-							headerResponse.setDeviceId(Params.SERVER_ID);
-							
-							packetResponse.setHeader(headerResponse);
-							packetResponse.setBody(Toolkit.getConnectedDevices());
-							return packetResponse;
-						}
-						catch(SQLException exc)
-						{
-							headerResponse.setDeviceId(Params.SERVER_ID);
-							headerResponse.setTimestamp(Toolkit.timestamp());
-							headerResponse.setCode(Code.RES_ERROR_SQL);
-							headerResponse.setToken(null);
-							packetResponse.setHeader(headerResponse);
-							packetResponse.setBody(exc.getMessage());
-							return packetResponse;
-						}
-						
-					case REQ_CLOSE_SESSION:
-						
-						try
-						{
-							Device dev = (Device) body;
-							Token reqToken = header.getToken();
-							if (db.verifyToken(reqToken))
+							try
 							{
-								Toolkit.removeConnectedDevice(dev);
+								Device dev = db.selectDeviceByMac((String) body);
+								
+								Token devToken = db.selectToken(dev.getId());
+								if (!devToken.isValid())
+								{
+									devToken.refresh();
+									db.updateToken(devToken);
+								}
+								
+								Toolkit.addConnectedDevice(dev);
+								
 								headerResponse.setCode(Code.RES_OK);
-								headerResponse.setToken(reqToken);
+								headerResponse.setToken(devToken);
 								headerResponse.setTimestamp(Toolkit.timestamp());
 								headerResponse.setDeviceId(Params.SERVER_ID);
-								packetResponse.setBody(null);
+								
+								packetResponse.setHeader(headerResponse);
+								packetResponse.setBody(Toolkit.getConnectedDevices());
+								return packetResponse;
 							}
-							else
+							catch(SQLException exc)
 							{
-								// TODO: WHAT? EH?
+								headerResponse.setDeviceId(Params.SERVER_ID);
+								headerResponse.setTimestamp(Toolkit.timestamp());
+								headerResponse.setCode(Code.RES_ERROR_SQL);
+								headerResponse.setToken(null);
+								packetResponse.setHeader(headerResponse);
+								packetResponse.setBody(exc.getMessage());
+								return packetResponse;
 							}
-							packetResponse.setHeader(headerResponse);
-							return packetResponse;
-						}
-						catch(SQLException exc)
-						{
-							headerResponse.setDeviceId(Params.SERVER_ID);
-							headerResponse.setTimestamp(Toolkit.timestamp());
-							headerResponse.setCode(Code.RES_ERROR_SQL);
-							headerResponse.setToken(null);
-							packetResponse.setHeader(headerResponse);
-							packetResponse.setBody(exc.getMessage());
-							return packetResponse;
+							
+						case REQ_CLOSE_SESSION:
+							
+							try
+							{
+								Device dev = (Device) body;
+								Token reqToken = header.getToken();
+								if (db.verifyToken(reqToken))
+								{
+									Toolkit.removeConnectedDevice(dev);
+									headerResponse.setCode(Code.RES_OK);
+									headerResponse.setToken(reqToken);
+									headerResponse.setTimestamp(Toolkit.timestamp());
+									headerResponse.setDeviceId(Params.SERVER_ID);
+									packetResponse.setBody(null);
+								}
+								else
+								{
+									// TODO: WHAT? EH?
+								}
+								packetResponse.setHeader(headerResponse);
+								return packetResponse;
+							}
+							catch(SQLException exc)
+							{
+								headerResponse.setDeviceId(Params.SERVER_ID);
+								headerResponse.setTimestamp(Toolkit.timestamp());
+								headerResponse.setCode(Code.RES_ERROR_SQL);
+								headerResponse.setToken(null);
+								packetResponse.setHeader(headerResponse);
+								packetResponse.setBody(exc.getMessage());
+								return packetResponse;
+							}
+							
+						case REQ_TRANSMISSION:
+							break;
+						default:
+							break;
 						}
 						
-					case REQ_TRANSMISSION:
-						break;
-					default:
-						break;
+						
+						
+						return null;
 					}
 					
-					
-					
-					return null;
-				}
-				
-				@Override
-				public void response(Packet obj, InetAddress addr, int port, OutputStream out)
-				{
-					try 
+					@Override
+					public void response(Packet obj, InetAddress addr, int port, ObjectOutputStream out)
 					{
-						TcpServer.send(obj, addr, port, out);
-					} 
-					catch (IOException e) 
-					{
-						e.printStackTrace();
+						try 
+						{
+							TcpServer.send(obj, addr, port, out);
+						} 
+						catch (IOException e) 
+						{
+							e.printStackTrace();
+						}
 					}
-				}
-			});				
+				});
+			}		
 		} 
 		catch (ClassNotFoundException e)
 		{
