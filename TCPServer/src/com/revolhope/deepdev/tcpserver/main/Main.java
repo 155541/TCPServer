@@ -38,7 +38,7 @@ public class Main {
 					case REQ_INIT:
 						try
 						{
-							Device dev = db.insertDevice((Device) body);
+							Device dev = (Device) body;
 							dev = db.insertDevice(dev);
 							
 							headerResponse.setDeviceId(Params.SERVER_ID);
