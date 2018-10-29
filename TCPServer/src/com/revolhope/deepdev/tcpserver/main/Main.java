@@ -1,6 +1,7 @@
 package com.revolhope.deepdev.tcpserver.main;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.InetAddress;
 import java.sql.SQLException;
 
@@ -142,11 +143,11 @@ public class Main {
 				}
 				
 				@Override
-				public void response(Packet obj, InetAddress addr, int port)
+				public void response(Packet obj, InetAddress addr, int port, OutputStream out)
 				{
 					try 
 					{
-						TcpServer.send(obj, addr, port);
+						TcpServer.send(obj, addr, port, out);
 					} 
 					catch (IOException e) 
 					{
