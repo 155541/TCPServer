@@ -3,6 +3,7 @@ package com.revolhope.deepdev.tcpserver.helpers;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Iterator;
 
 import com.revolhope.deepdev.tcplibrary.model.Device;
 
@@ -26,11 +27,15 @@ public class Toolkit
 	 */
 	public static void removeConnectedDevice(Device dev)
 	{
-		for (Device d : connectedDevices)
+		Device d;
+		Iterator<Device> it = connectedDevices.iterator();
+		while(it.hasNext())
 		{
+			d = it.next();
 			if (d.getId() == dev.getId())
 			{
-				connectedDevices.remove(d);
+				it.remove();
+				return;
 			}
 		}
 	}

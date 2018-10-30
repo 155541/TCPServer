@@ -27,7 +27,7 @@ public class Main {
 				TcpServer.listen(new TcpServer.OnReceive() {
 					
 					@Override
-					public Packet process(Packet obj)
+					public Packet process(Packet obj, InetAddress clientAddr)
 					{
 						Database db = Database.GetInstance();
 						Header header = obj.getHeader();
@@ -79,6 +79,7 @@ public class Main {
 									db.updateToken(devToken);
 								}
 								
+								dev.setCurrentInetAddress(clientAddr);
 								Toolkit.addConnectedDevice(dev);
 								
 								headerResponse.setCode(Code.RES_OK);
