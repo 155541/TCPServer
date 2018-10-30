@@ -101,6 +101,38 @@ public class Main {
 								packetResponse.setBody(exc.getMessage());
 								return packetResponse;
 							}
+						
+						case REQ_GET_DEV_CONN:
+							
+							try
+							{
+								Token reqToken = header.getToken();
+								if (db.verifyToken(reqToken))
+								{
+									headerResponse.setCode(Code.RES_OK);
+									headerResponse.setToken(reqToken);
+									headerResponse.setTimestamp(Toolkit.timestamp());
+									headerResponse.setDeviceId(Params.SERVER_ID);
+									packetResponse.setBody(Toolkit.getConnectedDevices());
+								}
+								else
+								{
+									// TODO: WHAT? EH?
+								}
+								packetResponse.setHeader(headerResponse);
+								return packetResponse;
+							}
+							catch(SQLException exc)
+							{
+								headerResponse.setDeviceId(Params.SERVER_ID);
+								headerResponse.setTimestamp(Toolkit.timestamp());
+								headerResponse.setCode(Code.RES_ERROR_SQL);
+								headerResponse.setToken(null);
+								packetResponse.setHeader(headerResponse);
+								packetResponse.setBody(exc.getMessage());
+								return packetResponse;
+							}
+							
 							
 						case REQ_CLOSE_SESSION:
 							
