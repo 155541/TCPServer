@@ -1,12 +1,17 @@
 package com.revolhope.deepdev.tcpserver.helpers;
 
+import java.io.ByteArrayInputStream;
+import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 
+import com.revolhope.deepdev.tcplibrary.model.DataFile;
 import com.revolhope.deepdev.tcplibrary.model.Device;
 import com.revolhope.deepdev.tcplibrary.model.Token;
 
@@ -78,6 +83,41 @@ public class Database {
 			conn.close();
 			return null;
 		}
+	}
+	
+	/***
+	 * Save DataFiles object into database
+	 * @param DataFile... Object/s to be stored
+	 * @throws SQLException
+	 */
+	public void insertFile(DataFile... files) throws SQLException
+	{
+		openConnection();
+		
+		String query = "INSERT INTO FILES(_FILE_NAME, EXTENSION, SOURCE, TARGET_ID, ORIGIN_ID, REQUEST_TIMESTAMP) VALUES(?,?,?,?,?,?)";
+		PreparedStatement ps = conn.prepareStatement(query);
+		
+		for (DataFile file : files)
+		{
+			
+			ps.setString(1, file.getFilename());
+			ps.setString(2, file.getExtension());
+			ps.setBlob(3, new ByteArrayInputStream(file.getSource()));
+			ps.setLong(4, file.getTargetId());
+			ps.setLong(5, file.getOriginId());
+			ps.setLong(6, file.getTimestamp());
+			
+			if (ps.executeUpdate() == 1)
+			{
+				ps.clearParameters();
+			}
+			else
+			{
+				throw new SQLException("Something while storing datafile in database was wrong");
+			}
+		}
+		ps.close();
+		conn.close();
 	}
 	
 	/***
@@ -164,6 +204,83 @@ public class Database {
 	
 	/***
 	 * 
+	 * @param targetId
+	 * @return 
+	 * @throws SQLException
+	 */
+	public List<DataFile> selectFilesFor(long targetId) throws SQLException
+	{
+		openConnection();
+		String query = "SELECT _FILE_ID, _FILE_NAME, EXTENSION, SOURCE, ORIGIN_ID, REQUEST_TIMESTAMP FROM FILES "
+					 + "WHERE TARGET_ID = ? "
+					 + "ORDER BY REQUEST_TIMESTAMP ASC";
+		
+		PreparedStatement ps = conn.prepareStatement(query);
+		ps.setLong(1, targetId);
+		ResultSet result = ps.executeQuery();
+		List<DataFile> files = new ArrayList<>();
+		
+		if (result.first())
+		{
+			do 
+			{
+				DataFile file = new DataFile();
+				file.setId(result.getLong(1));
+				file.setFilename(result.getString(2));
+				file.setExtension(result.getString(3));
+				
+				Blob blob = result.getBlob(4);
+				byte[] source = blob.getBytes(0, (int) blob.length());
+				
+				file.setSource(source);
+				file.setTargetId(targetId);
+				file.setOriginId(result.getLong(5));
+				file.setTimestamp(result.getLong(6));
+				files.add(file);
+			}
+			while(result.next());
+		}
+		ps.close();
+		conn.close();
+		return files;
+	}
+	
+	/***
+	 * 
+	 * @param deviceId
+	 * @return
+	 * @throws SQLException
+	 */
+	public Device selectDeviceById(long deviceId) throws SQLException
+	{
+		openConnection();
+		String query = "SELECT DEV_ID, DEV_NAME, DEV_MAC_ADDRESS, DATE_CREATED FROM DEVICE WHERE DEV_ID = ?";
+		PreparedStatement ps = conn.prepareStatement(query);
+		
+		ps.setLong(1, deviceId);
+		ResultSet result = ps.executeQuery();
+		if (result.first())
+		{
+			Device dev = new Device();
+			dev.setId(result.getLong(1));
+			dev.setName(result.getString(2));
+			dev.setMacAddress(result.getString(3));
+			dev.setCreatedDate(result.getLong(4));
+			
+			ps.close();
+			conn.close();
+			return dev;
+		}
+		else
+		{
+			ps.close();
+			conn.close();
+			throw new SQLException("Device id not found in database..");
+		}
+	}
+	
+	/***
+	 * 
 	 * @param deviceMac
 	 * @return
 	 * @throws SQLException
@@ -193,6 +310,40 @@ public class Database {
 			ps.close();
 			conn.close();
 			throw new SQLException("Device name not found in database..");
+		}
+	}
+	
+	/***
+	 * 
+	 * @param deviceId
+	 * @return
+	 * @throws SQLException
+	 */
+	public boolean checkDevice(long deviceId) throws SQLException
+	{
+		openConnection();
+		String query = "SELECT DEV_ID, DEV_NAME, DEV_MAC_ADDRESS, DATE_CREATED FROM DEVICE WHERE DEV_ID = ?";
+		PreparedStatement ps = conn.prepareStatement(query);
+		
+		ps.setLong(1, deviceId);
+		ResultSet result = ps.executeQuery();
+		if (result.first())
+		{
+			try
+			{
+				selectToken(deviceId);
+				return true;
+			}
+			catch(SQLException e)
+			{
+				return false;
+			}
+		}
+		else
+		{
+			ps.close();
+			conn.close();
+			throw new SQLException("Device id not found in database..");
 		}
 	}
 	

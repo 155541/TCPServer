@@ -12,6 +12,7 @@ import com.revolhope.deepdev.tcplibrary.model.Header;
 import com.revolhope.deepdev.tcplibrary.model.Packet;
 import com.revolhope.deepdev.tcplibrary.model.Token;
 import com.revolhope.deepdev.tcplibrary.model.Code;
+import com.revolhope.deepdev.tcplibrary.model.DataFile;
 import com.revolhope.deepdev.tcpserver.helpers.Database;
 import com.revolhope.deepdev.tcpserver.helpers.Toolkit;
 
@@ -168,14 +169,70 @@ public class Main {
 							}
 							
 						case REQ_TRANSMISSION:
-							break;
+							
+							try
+							{
+								DataFile[] dataFiles = (DataFile[]) body;
+								Token reqToken = header.getToken();
+								Device origin = null;
+								Device target = null;
+								int storedFiles = 0;
+								int sendFiles = 0;
+								
+								if (db.verifyToken(reqToken))
+								{
+									
+									for (DataFile df : dataFiles)
+									{
+										origin = null;
+										target = null;
+										origin = Toolkit.getById(df.getOriginId());
+										target = Toolkit.getById(df.getTargetId());
+										
+										if (origin == null) return null; // TODO
+										else if (target == null)
+										{
+											if (db.checkDevice(df.getTargetId()))
+											{
+												db.insertFile(df);
+												storedFiles++;
+											}
+										}
+										else
+										{
+											sendFiles++;
+										}
+										
+									}
+									
+									headerResponse.setCode(Code.RES_OK);
+									headerResponse.setToken(reqToken);
+									headerResponse.setTimestamp(Toolkit.timestamp());
+									headerResponse.setDeviceId(Params.SERVER_ID);
+									packetResponse.setBody(null);
+								}
+								else
+								{
+									// TODO: WHAT? EH?
+								}
+								packetResponse.setHeader(headerResponse);
+								return packetResponse;
+							}
+							catch(SQLException exc)
+							{
+								headerResponse.setDeviceId(Params.SERVER_ID);
+								headerResponse.setTimestamp(Toolkit.timestamp());
+								headerResponse.setCode(Code.RES_ERROR_SQL);
+								headerResponse.setToken(null);
+								packetResponse.setHeader(headerResponse);
+								packetResponse.setBody(exc.getMessage());
+								return packetResponse;
+							}
+							
 						default:
-							break;
+							//TODO: LOG THIS CASE 
+							return null;
 						}
-						
-						
-						
-						return null;
 					}
 					
 					@Override

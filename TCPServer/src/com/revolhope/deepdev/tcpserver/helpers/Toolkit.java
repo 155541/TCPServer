@@ -12,7 +12,7 @@ public class Toolkit
 	private static ArrayList<Device> connectedDevices = new ArrayList<>();
 	
 	/***
-	 * 
+	 * TODO
 	 * @param dev
 	 */
 	public static void addConnectedDevice(Device dev)
@@ -22,7 +22,7 @@ public class Toolkit
 	}
 	
 	/***
-	 * 
+	 * TODO
 	 * @param dev
 	 */
 	public static void removeConnectedDevice(Device dev)
@@ -41,7 +41,7 @@ public class Toolkit
 	}
 	
 	/***
-	 * 
+	 * TODO
 	 * @return
 	 */
 	public static ArrayList<Device> getConnectedDevices()
@@ -49,6 +49,41 @@ public class Toolkit
 		return Toolkit.connectedDevices;
 	}
 	
+	/**
+	 * TODO
+	 * @param dev
+	 * @return
+	 */
+	public static boolean isOnline(Device dev)
+	{
+		for (Device d : connectedDevices)
+		{
+			if (d.getId() == dev.getId()) return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * TODO
+	 * @param id
+	 * @return
+	 */
+	public static Device getById(long id)
+	{
+		for (Device d : connectedDevices)
+		{
+			if (d.getId() == id) return d;
+		}
+		return null;
+	}
+	
+	
+	// =========================================
+	
+	/**
+	 * TODO
+	 * @return
+	 */
 	public static long timestamp()
 	{
 		return Calendar.getInstance().getTimeInMillis();
