@@ -9,7 +9,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.List;
 
 import com.revolhope.deepdev.tcplibrary.model.DataFile;
 import com.revolhope.deepdev.tcplibrary.model.Device;
@@ -208,17 +207,27 @@ public class Database {
 	 * @return 
 	 * @throws SQLException
 	 */
-	public List<DataFile> selectFilesFor(long targetId) throws SQLException
+	public ArrayList<DataFile> selectFiles(long targetId, Long originId) throws SQLException
 	{
 		openConnection();
 		String query = "SELECT _FILE_ID, _FILE_NAME, EXTENSION, SOURCE, ORIGIN_ID, REQUEST_TIMESTAMP FROM FILES "
-					 + "WHERE TARGET_ID = ? "
-					 + "ORDER BY REQUEST_TIMESTAMP ASC";
+					 + "WHERE TARGET_ID = ? ";
+		if (originId != null) 
+		{
+			query += "AND ORIGIN_ID = ? ";
+		}
+		query += "ORDER BY REQUEST_TIMESTAMP ASC";
 		
 		PreparedStatement ps = conn.prepareStatement(query);
 		ps.setLong(1, targetId);
+		
+		if (originId != null) 
+		{
+			ps.setLong(2, originId);
+		}
+		
 		ResultSet result = ps.executeQuery();
-		List<DataFile> files = new ArrayList<>();
+		ArrayList<DataFile> files = new ArrayList<>();
 		
 		if (result.first())
 		{

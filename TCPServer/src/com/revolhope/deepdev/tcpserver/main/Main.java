@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 import com.revolhope.deepdev.tcplibrary.constants.Params;
 import com.revolhope.deepdev.tcplibrary.helpers.TcpServer;
@@ -40,6 +41,7 @@ public class Main {
 						switch(header.getCode())
 						{
 						case REQ_INIT:
+							
 							try
 							{
 								Device dev = (Device) body;
@@ -172,51 +174,73 @@ public class Main {
 							
 							try
 							{
-								DataFile[] dataFiles = (DataFile[]) body;
+								DataFile[] files = (DataFile[]) body;
 								Token reqToken = header.getToken();
-								Device origin = null;
-								Device target = null;
-								int storedFiles = 0;
-								int sendFiles = 0;
+								Device origin = Toolkit.getById(header.getDeviceId());								
 								
 								if (db.verifyToken(reqToken))
 								{
 									
-									for (DataFile df : dataFiles)
-									{
-										origin = null;
-										target = null;
-										origin = Toolkit.getById(df.getOriginId());
-										target = Toolkit.getById(df.getTargetId());
-										
-										if (origin == null) return null; // TODO
-										else if (target == null)
-										{
-											if (db.checkDevice(df.getTargetId()))
-											{
-												db.insertFile(df);
-												storedFiles++;
-											}
-										}
-										else
-										{
-											sendFiles++;
-										}
-										
-									}
+									if (!db.checkDevice(origin.getId())) return null; // TODO
+									
+									db.insertFile(files);
 									
 									headerResponse.setCode(Code.RES_OK);
 									headerResponse.setToken(reqToken);
 									headerResponse.setTimestamp(Toolkit.timestamp());
 									headerResponse.setDeviceId(Params.SERVER_ID);
-									packetResponse.setBody(null);
+									
+									packetResponse.setHeader(headerResponse);
+									packetResponse.setBody(String.format("Files stored to be delivered: %d", files.length));
+									
+									return packetResponse;
 								}
 								else
 								{
 									// TODO: WHAT? EH?
+									return null;
 								}
+							}
+							catch(SQLException exc)
+							{
+								headerResponse.setDeviceId(Params.SERVER_ID);
+								headerResponse.setTimestamp(Toolkit.timestamp());
+								headerResponse.setCode(Code.RES_ERROR_SQL);
+								headerResponse.setToken(null);
 								packetResponse.setHeader(headerResponse);
+								packetResponse.setBody(exc.getMessage());
 								return packetResponse;
+							}
+						
+						case REQ_PENDING_FILES:
+							
+							try
+							{
+								Token reqToken = header.getToken();
+								Device origin = Toolkit.getById(header.getDeviceId());								
+								
+								if (db.verifyToken(reqToken))
+								{
+										
+									
+									ArrayList<DataFile> files = db.selectFiles(origin.getId(),
+																			   body instanceof Long ? (Long)body : null);
+									
+									headerResponse.setCode(Code.RES_OK);
+									headerResponse.setToken(reqToken);
+									headerResponse.setTimestamp(Toolkit.timestamp());
+									headerResponse.setDeviceId(Params.SERVER_ID);
+									
+									packetResponse.setHeader(headerResponse);
+									packetResponse.setBody(files);
+									
+									return packetResponse;
+								}
+								else
+								{
+									// TODO: WHAT? EH?
+									return null;
+								}
 							}
 							catch(SQLException exc)
 							{
