@@ -20,7 +20,7 @@ public class Database {
 	private static final String DB_URL = "localhost:3306/";
 	private static final String DB_NAME = "FTP_Server";
 	private static final String DB_USR = "ftp_server";
-	private static final String DB_PWD = "44rl9:7g4nGve$_jDCaj32n<";
+	private static final String DB_PWD = "b1ql83dD$;Re5ka!lPOd80_234";
 	private static final String DB_PARAMS = "?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC";
 	
 	private static Database INSTANCE;
@@ -152,7 +152,7 @@ public class Database {
 	public void updateToken(Token token) throws SQLException
 	{
 		openConnection();
-		String query = "UPDATE FROM TOKEN SET _TOKEN = ?, EXPIRATION_DATE = ? WHERE DEVICE_ID = ?";
+		String query = "UPDATE TOKEN SET _TOKEN = ?, EXPIRATION_DATE = ? WHERE DEVICE_ID = ?";
 		PreparedStatement ps = conn.prepareStatement(query);
 		
 		ps.setString(1, token.toString());
