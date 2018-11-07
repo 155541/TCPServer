@@ -7,7 +7,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 
 import com.revolhope.deepdev.tcplibrary.constants.Params;
-import com.revolhope.deepdev.tcplibrary.helpers.TcpServer;
+import com.revolhope.deepdev.tcplibrary.helpers.server.OnReceive;
+import com.revolhope.deepdev.tcplibrary.helpers.server.TcpServer;
 import com.revolhope.deepdev.tcplibrary.model.Device;
 import com.revolhope.deepdev.tcplibrary.model.Header;
 import com.revolhope.deepdev.tcplibrary.model.Packet;
@@ -26,7 +27,7 @@ public class Main {
 			TcpServer.bind(Params.PORT);
 			while(true)
 			{
-				TcpServer.listen(new TcpServer.OnReceive() {
+				TcpServer.listen(new OnReceive() {
 					
 					@Override
 					public Packet process(Packet obj, InetAddress clientAddr)
