@@ -16,12 +16,23 @@ import com.revolhope.deepdev.tcplibrary.model.Token;
 
 public class Database {
 	
-	
-	private static final String DB_URL = "localhost:3306/";
+
 	private static final String DB_NAME = "FTP_Server";
 	private static final String DB_USR = "ftp_server";
 	private static final String DB_PWD = "b1ql83dD$;Re5ka!lPOd80_234";
-	private static final String DB_PARAMS = "?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC";
+	private static final String DB_MARIADB_CONN = "jdbc:mariadb://localhost:3306/" + DB_NAME + "?user="+ DB_USR +"&password=" + DB_PWD;
+	//private static final String DB_URL = "localhost:3306/";
+	//private static final String DB_PARAMS = "?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC";
+	
+	static
+	{
+		try {
+			Class.forName("org.mariadb.jdbc.Driver");
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 	
 	private static Database INSTANCE;
 	private static Connection conn;
@@ -386,6 +397,6 @@ public class Database {
 	 */
 	private static void openConnection() throws SQLException
 	{
-		conn = DriverManager.getConnection("jdbc:mysql://"+DB_URL+DB_NAME+DB_PARAMS, DB_USR, DB_PWD);
+		conn = DriverManager.getConnection(DB_MARIADB_CONN);
 	}
 }
