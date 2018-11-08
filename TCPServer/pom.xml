@@ -22,18 +22,6 @@
           <target>1.8</target>
         </configuration>
       </plugin>
-      <plugin>
-      	<groupId>org.apache.maven.plugins</groupId>
-      	<artifactId>maven-jar-plugin</artifactId>
-      	<version>3.1.0</version>
-        <configuration>
-          <archive>
-          	<manifest>
-          		<mainClass>com.revolhope.deepdev.tcpserver.main.Main</mainClass>
-          	</manifest>
-          </archive>
-        </configuration>
-      </plugin>
     </plugins>
   </build>
   <dependencies>
@@ -43,5 +31,10 @@
   		<version>0.0.1-SNAPSHOT</version>
   		<scope>compile</scope>
   	</dependency>
+  	<dependency>
+  		<groupId>org.mariadb.jdbc</groupId>
+  		<artifactId>mariadb-java-client</artifactId>
+  		<version>1.7.4</version>
+	</dependency>
   </dependencies>
 </project>
