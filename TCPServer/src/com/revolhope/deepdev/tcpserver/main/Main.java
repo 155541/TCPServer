@@ -20,7 +20,7 @@ import com.revolhope.deepdev.tcpserver.helpers.Toolkit;
 public class Main {
 	
 	public static void main(String[] args) {
-		
+		// TEST
 		try 
 		{
 			TcpServer.bind(Params.PORT);
