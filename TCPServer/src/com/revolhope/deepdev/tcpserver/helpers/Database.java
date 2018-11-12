@@ -180,6 +180,31 @@ public class Database {
 		}
 	}
 	
+	/**
+	 * Method to remove files from database
+	 * @param ids ArrayList<Long> containing all id's to delete
+	 * @throws SQLException
+	 */
+	public void deleteFiles(ArrayList<Long> ids) throws SQLException
+	{
+		openConnection();
+		String query = "DELETE FROM FILES WHERE _FILE_ID = ?";
+		PreparedStatement ps = conn.prepareStatement(query);
+		
+		for (long id : ids)
+		{
+			ps.setLong(1, id);
+			int result = ps.executeUpdate();
+			if (result != 1)
+			{
+				ps.close();
+				conn.close();
+				throw new SQLException("File id given doesn't found in database");
+			}
+			ps.clearParameters();
+		}
+	}
+	
 	/***
 	 * Method to select a Token given it's device id
 	 * @param deviceId Long identifier of the token requested

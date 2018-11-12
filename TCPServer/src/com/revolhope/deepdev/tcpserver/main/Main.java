@@ -28,6 +28,7 @@ public class Main {
 			{
 				TcpServer.listen(new OnReceive() {
 					
+					@SuppressWarnings("unchecked")
 					@Override
 					public Packet process(Packet obj, InetAddress clientAddr)
 					{
@@ -233,6 +234,44 @@ public class Main {
 									
 									packetResponse.setHeader(headerResponse);
 									packetResponse.setBody(files);
+									
+									return packetResponse;
+								}
+								else
+								{
+									// TODO: WHAT? EH?
+									return null;
+								}
+							}
+							catch(SQLException exc)
+							{
+								headerResponse.setDeviceId(Params.SERVER_ID);
+								headerResponse.setTimestamp(Toolkit.timestamp());
+								headerResponse.setCode(Code.RES_ERROR_SQL);
+								headerResponse.setToken(null);
+								packetResponse.setHeader(headerResponse);
+								packetResponse.setBody(exc.getMessage());
+								return packetResponse;
+							}
+							
+						case REQ_DELETE_FILES:
+							
+							try
+							{
+								Token reqToken = header.getToken();								
+								if (db.verifyToken(reqToken))
+								{
+									
+									ArrayList<Long> ids = (ArrayList<Long>) body;
+									db.deleteFiles(ids);
+									
+									headerResponse.setCode(Code.RES_OK);
+									headerResponse.setToken(reqToken);
+									headerResponse.setTimestamp(Toolkit.timestamp());
+									headerResponse.setDeviceId(Params.SERVER_ID);
+									
+									packetResponse.setHeader(headerResponse);
+									packetResponse.setBody(null);
 									
 									return packetResponse;
 								}
