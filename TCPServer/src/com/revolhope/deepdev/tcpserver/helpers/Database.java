@@ -275,7 +275,7 @@ public class Database {
 				file.setExtension(result.getString(3));
 				
 				Blob blob = result.getBlob(4);
-				byte[] source = blob.getBytes(0, (int) blob.length());
+				byte[] source = blob.getBytes(1, (int) blob.length());
 				
 				file.setSource(source);
 				file.setTargetId(targetId);
